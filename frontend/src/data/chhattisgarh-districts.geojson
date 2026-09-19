@@ -1,0 +1,80 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": { "id": "raipur", "name": "Raipur", "division": "Raipur", "headquarters": "Raipur" },
+      "geometry": { "type": "Polygon", "coordinates": [[[81.30, 21.00], [81.90, 21.00], [81.95, 21.60], [81.35, 21.60], [81.30, 21.00]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "id": "bilaspur", "name": "Bilaspur", "division": "Bilaspur", "headquarters": "Bilaspur" },
+      "geometry": { "type": "Polygon", "coordinates": [[[81.80, 21.90], [82.50, 21.90], [82.45, 22.45], [81.75, 22.45], [81.80, 21.90]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "id": "durg", "name": "Durg", "division": "Durg", "headquarters": "Durg" },
+      "geometry": { "type": "Polygon", "coordinates": [[[80.95, 20.90], [81.50, 20.90], [81.45, 21.50], [80.90, 21.50], [80.95, 20.90]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "id": "korba", "name": "Korba", "division": "Bilaspur", "headquarters": "Korba" },
+      "geometry": { "type": "Polygon", "coordinates": [[[82.40, 22.10], [83.10, 22.10], [83.05, 22.80], [82.35, 22.80], [82.40, 22.10]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "id": "bastar", "name": "Bastar", "division": "Bastar", "headquarters": "Jagdalpur" },
+      "geometry": { "type": "Polygon", "coordinates": [[[81.50, 18.80], [82.30, 18.80], [82.35, 19.60], [81.45, 19.60], [81.50, 18.80]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "id": "surguja", "name": "Surguja", "division": "Surguja", "headquarters": "Ambikapur" },
+      "geometry": { "type": "Polygon", "coordinates": [[[82.70, 22.70], [83.70, 22.70], [83.65, 23.70], [82.65, 23.70], [82.70, 22.70]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "id": "rajnandgaon", "name": "Rajnandgaon", "division": "Durg", "headquarters": "Rajnandgaon" },
+      "geometry": { "type": "Polygon", "coordinates": [[[80.40, 20.70], [81.20, 20.70], [81.15, 21.50], [80.35, 21.50], [80.40, 20.70]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "id": "raigarh", "name": "Raigarh", "division": "Bilaspur", "headquarters": "Raigarh" },
+      "geometry": { "type": "Polygon", "coordinates": [[[83.00, 21.40], [83.85, 21.40], [83.80, 22.30], [82.95, 22.30], [83.00, 21.40]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "id": "dhamtari", "name": "Dhamtari", "division": "Raipur", "headquarters": "Dhamtari" },
+      "geometry": { "type": "Polygon", "coordinates": [[[81.20, 20.20], [81.90, 20.20], [81.85, 20.90], [81.15, 20.90], [81.20, 20.20]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "id": "kanker", "name": "Kanker", "division": "Bastar", "headquarters": "Kanker" },
+      "geometry": { "type": "Polygon", "coordinates": [[[80.80, 19.80], [81.70, 19.80], [81.65, 20.50], [80.75, 20.50], [80.80, 19.80]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "id": "sukma", "name": "Sukma", "division": "Bastar", "headquarters": "Sukma" },
+      "geometry": { "type": "Polygon", "coordinates": [[[81.00, 17.80], [81.90, 17.80], [81.85, 18.70], [80.95, 18.70], [81.00, 17.80]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "id": "jashpur", "name": "Jashpur", "division": "Surguja", "headquarters": "Jashpur Nagar" },
+      "geometry": { "type": "Polygon", "coordinates": [[[83.50, 22.40], [84.30, 22.40], [84.25, 23.20], [83.45, 23.20], [83.50, 22.40]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "id": "koriya", "name": "Koriya", "division": "Surguja", "headquarters": "Baikunthpur" },
+      "geometry": { "type": "Polygon", "coordinates": [[[81.80, 23.10], [82.60, 23.10], [82.55, 23.85], [81.75, 23.85], [81.80, 23.10]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "id": "kabirdham", "name": "Kabirdham (Kawardha)", "division": "Durg", "headquarters": "Kawardha" },
+      "geometry": { "type": "Polygon", "coordinates": [[[80.80, 21.80], [81.45, 21.80], [81.40, 22.40], [80.75, 22.40], [80.80, 21.80]]] }
+    },
+    {
+      "type": "Feature",
+      "properties": { "id": "mahasamund", "name": "Mahasamund", "division": "Raipur", "headquarters": "Mahasamund" },
+      "geometry": { "type": "Polygon", "coordinates": [[[81.90, 21.00], [82.80, 21.00], [82.75, 21.75], [81.85, 21.75], [81.90, 21.00]]] }
+    }
+  ]
+}
