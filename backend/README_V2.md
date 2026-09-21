@@ -10,8 +10,9 @@
 
 ## Run locally
 ```powershell
-cd C:\Users\khushi\Desktop\ClimateTwin-AI\backend
-..\venv\Scripts\Activate.ps1
+cd backend
+python -m venv venv
+.\venv\Scripts\Activate.ps1
 pip install -r requirements.txt
 python -m uvicorn main:app --reload --port 8000
 ```

@@ -2,7 +2,7 @@
 api/compat.py — Compatibility layer for ClimateTwin AI v2
 
 Serves the full set of endpoints that the frontend's api.js expects,
-using the new Climate.backend's live Open-Meteo data source and
+using the backend's live Open-Meteo data source and
 the updated v2 multi-output LSTM model.
 
 Endpoints implemented here:
@@ -76,7 +76,7 @@ def _load_v2():
         if not MODEL_V2.exists():
             raise HTTPException(
                 503,
-                "v2 LSTM model not found. Run training first (see ClimateTwin_AI_Colab_Training.ipynb).",
+                f"v2 LSTM model weights not found at {MODEL_V2}.",
             )
         if not (DATA_V2 / "feature_scaler.pkl").exists():
             raise HTTPException(503, "v2 feature scaler not found.")
