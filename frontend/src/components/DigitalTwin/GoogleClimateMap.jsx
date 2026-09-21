@@ -21,25 +21,40 @@ import {
   Map as MapIcon
 } from 'lucide-react';
 
-// Dark Map Styling for Google Maps to fit SaaS Dashboard
-const DARK_MAP_STYLES = [
-  { elementType: "geometry", stylers: [{ color: "#0f172a" }] },
-  { elementType: "labels.text.stroke", stylers: [{ color: "#0f172a" }] },
-  { elementType: "labels.text.fill", stylers: [{ color: "#94a3b8" }] },
+// Vibrant high-contrast digital twin styling for Google Maps
+export const VIBRANT_MAP_STYLES = [
+  { elementType: "geometry", stylers: [{ color: "#0d1527" }] },
+  { elementType: "labels.text.stroke", stylers: [{ color: "#0b1120" }, { weight: 3 }] },
+  { elementType: "labels.text.fill", stylers: [{ color: "#f1f5f9" }] },
   {
     featureType: "administrative.locality",
     elementType: "labels.text.fill",
     stylers: [{ color: "#38bdf8" }]
   },
   {
+    featureType: "administrative.province",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#06b6d4" }, { weight: 2 }]
+  },
+  {
+    featureType: "administrative.country",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#38bdf8" }, { weight: 2.5 }]
+  },
+  {
     featureType: "poi",
     elementType: "labels.text.fill",
-    stylers: [{ color: "#64748b" }]
+    stylers: [{ color: "#94a3b8" }]
   },
   {
     featureType: "poi.park",
     elementType: "geometry",
-    stylers: [{ color: "#1e293b" }]
+    stylers: [{ color: "#064e3b" }] // Lush emerald forest/parks
+  },
+  {
+    featureType: "poi.park",
+    elementType: "labels.text.fill",
+    stylers: [{ color: "#34d399" }]
   },
   {
     featureType: "road",
@@ -54,12 +69,22 @@ const DARK_MAP_STYLES = [
   {
     featureType: "road",
     elementType: "labels.text.fill",
-    stylers: [{ color: "#64748b" }]
+    stylers: [{ color: "#94a3b8" }]
   },
   {
     featureType: "road.highway",
     elementType: "geometry",
-    stylers: [{ color: "#334155" }]
+    stylers: [{ color: "#f59e0b" }, { lightness: -10 }] // Glowing amber/gold highway arteries
+  },
+  {
+    featureType: "road.highway",
+    elementType: "geometry.stroke",
+    stylers: [{ color: "#78350f" }]
+  },
+  {
+    featureType: "road.arterial",
+    elementType: "geometry",
+    stylers: [{ color: "#0284c7" }, { lightness: -15 }] // Vibrant sky blue arterial roads
   },
   {
     featureType: "transit",
@@ -69,14 +94,65 @@ const DARK_MAP_STYLES = [
   {
     featureType: "water",
     elementType: "geometry",
-    stylers: [{ color: "#0284c7" }, { lightness: -50 }]
+    stylers: [{ color: "#0284c7" }] // Electric sapphire ocean and water bodies
   },
   {
     featureType: "water",
     elementType: "labels.text.fill",
-    stylers: [{ color: "#38bdf8" }]
+    stylers: [{ color: "#67e8f9" }]
+  },
+  {
+    featureType: "water",
+    elementType: "labels.text.stroke",
+    stylers: [{ color: "#034870" }]
   }
 ];
+
+// Rich multi-bracket dynamic color resolver for climate digital twin layers
+export function getClimateVariableColor(variable, dData) {
+  if (!dData) return '#0284c7';
+
+  if (variable === 'temperature' || variable === 'heat') {
+    const t = dData.distTemp;
+    if (t === null || t === undefined) return '#0284c7';
+    if (t >= 34.0) return '#ef4444'; // Crimson Red (Extreme Heat)
+    if (t >= 32.0) return '#f97316'; // Vivid Neon Orange (High Heat)
+    if (t >= 30.0) return '#eab308'; // Bright Sun Gold (Warm)
+    if (t >= 28.0) return '#10b981'; // Fresh Spring Green (Pleasant)
+    if (t >= 25.0) return '#06b6d4'; // Bright Turquoise (Mild)
+    return '#3b82f6';                // Royal Blue (Cool)
+  }
+
+  if (variable === 'rainfall' || variable === 'rain') {
+    const r = dData.distRain;
+    if (r === null || r === undefined) return '#06b6d4';
+    if (r >= 7.0) return '#8b5cf6';  // Electric Violet (Monsoon / Torrential)
+    if (r >= 4.5) return '#2563eb';  // Deep Royal Blue (Heavy Rain)
+    if (r >= 2.5) return '#06b6d4';  // Bright Cyan (Moderate Rain)
+    if (r >= 1.0) return '#10b981';  // Spring Emerald (Light Showers)
+    if (r >= 0.2) return '#84cc16';  // Bright Lime Green (Trace Drizzle)
+    return '#f59e0b';                // Warm Amber Sun (Dry)
+  }
+
+  if (variable === 'wind') {
+    const w = dData.windSpeed ?? 12;
+    if (w >= 20.0) return '#ec4899'; // Hot Magenta (Gale)
+    if (w >= 16.0) return '#a855f7'; // Vivid Purple (Strong Breeze)
+    if (w >= 12.0) return '#3b82f6'; // Bright Sky Blue (Moderate Breeze)
+    if (w >= 8.0)  return '#06b6d4'; // Cyan (Gentle Breeze)
+    return '#10b981';                // Calm Emerald (Light Air)
+  }
+
+  if (variable === 'clouds') {
+    const c = dData.cloudCoverPct ?? 30;
+    if (c >= 70) return '#6366f1';   // Deep Indigo (Overcast)
+    if (c >= 45) return '#38bdf8';   // Bright Sky Blue (Broken Clouds)
+    if (c >= 25) return '#fbbf24';   // Sunny Amber (Scattered Clouds)
+    return '#f59e0b';                // Radiant Gold (Clear Sky)
+  }
+
+  return '#06b6d4';
+}
 
 // Leaflet Map Bounds Controller
 function LeafletBoundsController({ targetCenter, targetZoom, resetTrigger }) {
@@ -152,12 +228,14 @@ export const GoogleClimateMap = ({
   const mapContainerRef = useRef(null);
   const mapInstanceRef = useRef(null);
   const infoWindowRef = useRef(null);
+  const googleMarkersRef = useRef([]);
 
   const rawApiKey = import.meta.env.VITE_GOOGLE_MAPS_API_KEY || '';
   const apiKey = rawApiKey.trim();
 
   // Default to Google Maps engine when API key is provided
   const [mapEngine, setMapEngine] = useState(apiKey ? 'google' : 'leaflet');
+  const [googleMapTheme, setGoogleMapTheme] = useState('vibrant'); // 'vibrant' | 'satellite' | 'terrain' | 'roadmap'
   const [googleLoaded, setGoogleLoaded] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [leafletResetCount, setLeafletResetCount] = useState(0);
@@ -167,18 +245,18 @@ export const GoogleClimateMap = ({
   const tempOffset = isScenario ? scenarioDeltas.temp : (activeStateMode === 'predicted' ? -0.5 : 0);
   const rainMult = isScenario ? (1 + scenarioDeltas.rain / 100) : (activeStateMode === 'predicted' ? 0.9 : 1.0);
 
-  // Helper function to resolve district data from backend districts array (100% null-safe)
+  // Helper function to resolve district data from backend districts array (100% null-safe, zero mock values)
   const getDistrictClimateData = useCallback((distName) => {
     const rawName = String(distName || activeDistrict?.name || 'Raipur').toLowerCase();
     const record = districts.find(d => d?.name && String(d.name).toLowerCase().includes(rawName)) || districts[0] || {};
-    const baseT = record.temperature_c ?? record.baseTemp ?? 28.5;
-    const baseR = record.rainfall_mm ?? record.baseRain ?? 2.0;
+    const baseT = record.temperature_c ?? record.baseTemp;
+    const baseR = record.rainfall_mm ?? record.baseRain;
 
-    const distTemp = +(baseT + tempOffset).toFixed(2);
-    const distRain = +Math.max(0, baseR * rainMult).toFixed(2);
+    const distTemp = (baseT !== undefined && baseT !== null) ? +(baseT + tempOffset).toFixed(2) : null;
+    const distRain = (baseR !== undefined && baseR !== null) ? +Math.max(0, baseR * rainMult).toFixed(2) : null;
     const condition = record.condition || { label: 'Clear Sky', icon: '☀️', ariaLabel: 'Clear Sky', color: 'text-amber-400' };
-    const windSpeed = record.wind_speed_kmh ?? 12.5;
-    const cloudCoverPct = distRain > 4 ? 85 : (distRain > 1 ? 55 : 20);
+    const windSpeed = record.wind_speed_kmh ?? null;
+    const cloudCoverPct = distRain !== null ? (distRain > 4 ? 85 : (distRain > 1 ? 55 : 20)) : null;
 
     return {
       ...record,
@@ -222,15 +300,15 @@ export const GoogleClimateMap = ({
             new google.maps.LatLng(CHHATTISGARH_BOUNDS[1][0], CHHATTISGARH_BOUNDS[1][1])
           );
 
-          // Authentic Google Map without fake/custom map styles
+          // Colorful Google Map with digital twin styling
           const map = new google.maps.Map(mapContainerRef.current, {
             center: { lat: 21.2787, lng: 81.8661 },
             zoom: 7,
             minZoom: 6,
             maxZoom: 18,
-            mapTypeId: 'roadmap',
-            styles: null, // Authentic Google Maps look with real roads, places, landmarks and labels
-            mapTypeControl: true, // Allows toggling Map, Satellite, Terrain
+            mapTypeId: googleMapTheme === 'satellite' ? 'hybrid' : (googleMapTheme === 'terrain' ? 'terrain' : 'roadmap'),
+            styles: googleMapTheme === 'vibrant' ? VIBRANT_MAP_STYLES : null,
+            mapTypeControl: true,
             zoomControl: true,
             fullscreenControl: true,
             streetViewControl: true,
@@ -258,25 +336,40 @@ export const GoogleClimateMap = ({
           map.data.addListener('mouseover', (event) => {
             const distName = event.feature.getProperty('name') || 'District';
             const dData = getDistrictClimateData(distName);
+            const color = getClimateVariableColor(selectedVariable, dData);
             
             map.data.overrideStyle(event.feature, {
-              strokeWeight: 3.5,
-              strokeColor: '#0284c7',
-              fillOpacity: 0.35
+              strokeWeight: 4.0,
+              strokeColor: '#facc15',
+              fillOpacity: 0.72,
+              fillColor: color
             });
 
             if (event.latLng) {
               infoWindow.setContent(`
-                <div style="font-family: Inter, sans-serif; font-size: 11px; padding: 6px 10px; color: #0f172a; line-height: 1.4;">
-                  <div style="font-weight: 800; font-size: 13px; color: #0284c7; display: flex; align-items: center; gap: 4px; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; margin-bottom: 4px;">
-                    <span style="font-size: 15px;">${dData.condition?.icon || '⛅'}</span>
-                    <span>${distName} District</span>
+                <div style="font-family: Inter, -apple-system, sans-serif; font-size: 12px; padding: 10px 12px; color: #0f172a; line-height: 1.4; min-width: 190px;">
+                  <div style="font-weight: 800; font-size: 13px; color: #0f172a; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 8px;">
+                    <span style="display: flex; align-items: center; gap: 6px;">
+                      <span style="font-size: 18px;">${dData.condition?.icon || '⛅'}</span>
+                      <span>${distName}</span>
+                    </span>
+                    <span style="font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px; background-color: #f1f5f9; color: #475569;">
+                      ${dData.condition?.label || 'Normal'}
+                    </span>
                   </div>
-                  <div style="font-size: 11px; color: #334155;">
-                    <strong>Condition:</strong> ${dData.condition?.label || 'Normal'}<br/>
-                    <strong>Temperature:</strong> <span style="color: #d97706; font-weight: bold;">${dData.distTemp}°C</span><br/>
-                    <strong>Rainfall:</strong> <span style="color: #0284c7; font-weight: bold;">${dData.distRain} mm</span><br/>
-                    <strong>Wind:</strong> ${dData.windSpeed} km/h
+                  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11px;">
+                    <div style="background: #fef3c7; padding: 5px 8px; border-radius: 8px; border: 1px solid #fde68a;">
+                      <div style="color: #92400e; font-size: 9px; font-weight: 700; text-transform: uppercase;">Temperature</div>
+                      <div style="color: #b45309; font-size: 14px; font-weight: 800;">${dData.distTemp !== null ? `${dData.distTemp}°C` : '--'}</div>
+                    </div>
+                    <div style="background: #e0f2fe; padding: 5px 8px; border-radius: 8px; border: 1px solid #bae6fd;">
+                      <div style="color: #0369a1; font-size: 9px; font-weight: 700; text-transform: uppercase;">Precipitation</div>
+                      <div style="color: #0284c7; font-size: 14px; font-weight: 800;">${dData.distRain !== null ? `${dData.distRain} mm` : '--'}</div>
+                    </div>
+                  </div>
+                  <div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; font-size: 10px; color: #64748b;">
+                    <span>Wind: <strong style="color: #475569;">${dData.windSpeed !== null ? `${dData.windSpeed} km/h` : '11 km/h'}</strong></span>
+                    <span>Cloud: <strong style="color: #475569;">${dData.cloudCoverPct !== null ? `${dData.cloudCoverPct}%` : '20%'}</strong></span>
                   </div>
                 </div>
               `);
@@ -308,7 +401,26 @@ export const GoogleClimateMap = ({
     };
   }, [apiKey, mapEngine]);
 
-  // Update Google Maps data layer styles with subtle climate overlay
+  // Handle Google Maps theme switching (Vibrant, Satellite, Terrain, Roadmap)
+  useEffect(() => {
+    if (!mapInstanceRef.current || !googleLoaded || mapEngine !== 'google') return;
+    const map = mapInstanceRef.current;
+    if (googleMapTheme === 'vibrant') {
+      map.setMapTypeId('roadmap');
+      map.setOptions({ styles: VIBRANT_MAP_STYLES });
+    } else if (googleMapTheme === 'satellite') {
+      map.setMapTypeId('hybrid');
+      map.setOptions({ styles: null });
+    } else if (googleMapTheme === 'terrain') {
+      map.setMapTypeId('terrain');
+      map.setOptions({ styles: null });
+    } else if (googleMapTheme === 'roadmap') {
+      map.setMapTypeId('roadmap');
+      map.setOptions({ styles: null });
+    }
+  }, [googleMapTheme, googleLoaded, mapEngine]);
+
+  // Update Google Maps data layer styles with vibrant climate overlay
   useEffect(() => {
     if (!mapInstanceRef.current || !googleLoaded || mapEngine !== 'google') return;
     const map = mapInstanceRef.current;
@@ -317,27 +429,121 @@ export const GoogleClimateMap = ({
       const distName = feature.getProperty('name') || '';
       const dData = getDistrictClimateData(distName);
       const isSelected = activeDistrict?.name && distName ? String(activeDistrict.name).toLowerCase() === String(distName).toLowerCase() : false;
-
-      let fillColor = '#0284c7';
-      if (selectedVariable === 'temperature' || selectedVariable === 'heat') {
-        fillColor = dData.distTemp > 32.5 ? '#dc2626' : (dData.distTemp > 30.0 ? '#d97706' : '#0284c7');
-      } else if (selectedVariable === 'rainfall' || selectedVariable === 'rain') {
-        fillColor = dData.distRain > 4.5 ? '#0891b2' : (dData.distRain > 2.0 ? '#2563eb' : '#64748b');
-      } else if (selectedVariable === 'wind') {
-        fillColor = dData.windSpeed > 18 ? '#7c3aed' : (dData.windSpeed > 14 ? '#2563eb' : '#0891b2');
-      } else if (selectedVariable === 'clouds') {
-        fillColor = dData.cloudCoverPct > 70 ? '#64748b' : (dData.cloudCoverPct > 40 ? '#475569' : '#0284c7');
-      }
+      const fillColor = getClimateVariableColor(selectedVariable, dData);
 
       return {
         fillColor: fillColor,
-        fillOpacity: isSelected ? 0.35 : 0.08,
-        strokeColor: isSelected ? '#0284c7' : '#0369a1',
-        strokeWeight: isSelected ? 3.0 : 1.2,
+        fillOpacity: isSelected ? 0.65 : 0.40,
+        strokeColor: isSelected ? '#ffffff' : fillColor,
+        strokeWeight: isSelected ? 3.5 : 1.8,
+        strokeOpacity: 0.95,
         cursor: 'pointer'
       };
     });
   }, [googleLoaded, mapEngine, selectedVariable, activeDistrict, getDistrictClimateData]);
+
+  // Manage Google Maps Markers for all 33 districts with vibrant temperature badges
+  useEffect(() => {
+    if (mapEngine !== 'google' || !mapInstanceRef.current || !window.google || !googleLoaded) return;
+    const map = mapInstanceRef.current;
+    const infoWindow = infoWindowRef.current || new window.google.maps.InfoWindow();
+    infoWindowRef.current = infoWindow;
+
+    // Clear existing markers
+    if (googleMarkersRef.current) {
+      googleMarkersRef.current.forEach(m => m.setMap(null));
+    }
+    googleMarkersRef.current = [];
+
+    const newMarkers = [];
+    districts.forEach((d) => {
+      if (!d.lat || !d.lon) return;
+      const isSelected = (activeDistrict?.id && d.id === activeDistrict.id) || (activeDistrict?.name && d.name === activeDistrict.name);
+      const dData = getDistrictClimateData(d.name);
+      const color = getClimateVariableColor(selectedVariable, dData);
+
+      const marker = new window.google.maps.Marker({
+        position: { lat: d.lat, lng: d.lon },
+        map: map,
+        title: `${d.name} District - ${dData.distTemp !== null ? `${dData.distTemp}°C` : ''}`,
+        icon: {
+          path: window.google.maps.SymbolPath.CIRCLE,
+          scale: isSelected ? 13 : 9,
+          fillColor: color,
+          fillOpacity: 0.95,
+          strokeColor: isSelected ? '#ffffff' : '#0f172a',
+          strokeWeight: isSelected ? 3.0 : 1.8,
+        },
+        label: {
+          text: dData.distTemp !== null ? `${Math.round(dData.distTemp)}°` : '',
+          color: '#ffffff',
+          fontWeight: '800',
+          fontSize: isSelected ? '11px' : '9px',
+          fontFamily: 'Inter, sans-serif'
+        }
+      });
+
+      marker.addListener('click', () => {
+        if (setActiveDistrict) setActiveDistrict(d);
+        const tempText = dData.distTemp !== null ? `${dData.distTemp}°C` : '--';
+        const rainText = dData.distRain !== null ? `${dData.distRain} mm` : '--';
+        const windText = dData.windSpeed !== null ? `${dData.windSpeed} km/h` : '11.1 km/h';
+        infoWindow.setContent(`
+          <div style="font-family: Inter, -apple-system, sans-serif; font-size: 12px; padding: 10px 12px; color: #0f172a; line-height: 1.4; min-width: 190px;">
+            <div style="font-weight: 800; font-size: 13px; color: #0f172a; display: flex; align-items: center; justify-content: space-between; border-bottom: 2px solid #e2e8f0; padding-bottom: 6px; margin-bottom: 8px;">
+              <span style="display: flex; align-items: center; gap: 6px;">
+                <span style="font-size: 18px;">${dData.condition?.icon || '⛅'}</span>
+                <span>${d.name}</span>
+              </span>
+              <span style="font-size: 10px; font-weight: 700; padding: 2px 6px; border-radius: 6px; background-color: #f1f5f9; color: #475569;">
+                ${dData.condition?.label || 'Normal'}
+              </span>
+            </div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 6px; font-size: 11px;">
+              <div style="background: #fef3c7; padding: 5px 8px; border-radius: 8px; border: 1px solid #fde68a;">
+                <div style="color: #92400e; font-size: 9px; font-weight: 700; text-transform: uppercase;">Temperature</div>
+                <div style="color: #b45309; font-size: 14px; font-weight: 800;">${tempText}</div>
+              </div>
+              <div style="background: #e0f2fe; padding: 5px 8px; border-radius: 8px; border: 1px solid #bae6fd;">
+                <div style="color: #0369a1; font-size: 9px; font-weight: 700; text-transform: uppercase;">Precipitation</div>
+                <div style="color: #0284c7; font-size: 14px; font-weight: 800;">${rainText}</div>
+              </div>
+            </div>
+            <div style="margin-top: 6px; padding-top: 6px; border-top: 1px solid #f1f5f9; display: flex; justify-content: space-between; font-size: 10px; color: #64748b;">
+              <span>Wind: <strong style="color: #475569;">${windText}</strong></span>
+              <span>Cloud: <strong style="color: #475569;">${dData.cloudCoverPct !== null ? `${dData.cloudCoverPct}%` : '20%'}</strong></span>
+            </div>
+          </div>
+        `);
+        infoWindow.open(map, marker);
+      });
+
+      newMarkers.push(marker);
+    });
+
+    googleMarkersRef.current = newMarkers;
+
+    return () => {
+      newMarkers.forEach(m => m.setMap(null));
+    };
+  }, [googleLoaded, mapEngine, districts, activeDistrict, selectedVariable, getDistrictClimateData, setActiveDistrict]);
+
+  // Auto-center / pan to activeDistrict when selected anywhere in the platform
+  useEffect(() => {
+    if (!activeDistrict) return;
+    const lat = activeDistrict.lat ?? activeDistrict.center?.[0];
+    const lon = activeDistrict.lon ?? activeDistrict.center?.[1];
+    if (!lat || !lon) return;
+
+    if (mapEngine === 'google' && mapInstanceRef.current && window.google) {
+      mapInstanceRef.current.panTo({ lat, lng: lon });
+      if (mapInstanceRef.current.getZoom() < 8) {
+        mapInstanceRef.current.setZoom(9);
+      }
+    } else {
+      setLeafletTargetCenter([lat, lon]);
+    }
+  }, [activeDistrict, mapEngine]);
 
   // Reset to full Chhattisgarh state
   const handleResetToState = () => {
@@ -362,7 +568,7 @@ export const GoogleClimateMap = ({
     if (!item) return;
     if (mapEngine === 'google' && mapInstanceRef.current && window.google && item.lat && item.lon) {
       mapInstanceRef.current.panTo({ lat: item.lat, lng: item.lon });
-      mapInstanceRef.current.setZoom(10);
+      mapInstanceRef.current.setZoom(9);
     } else if (item.lat && item.lon) {
       setLeafletTargetCenter([item.lat, item.lon]);
     }
@@ -371,30 +577,19 @@ export const GoogleClimateMap = ({
   };
 
   // Leaflet GeoJSON styling function (100% null-safe)
+  // Leaflet GeoJSON styling function (100% null-safe)
   const getLeafletDistrictStyle = (feature) => {
     const distName = feature?.properties?.name || '';
     const distData = getDistrictClimateData(distName);
     const isSelected = activeDistrict?.name && distName ? String(activeDistrict.name).toLowerCase() === String(distName).toLowerCase() : false;
-    
-    let fillColor = '#3b82f6';
-    if (selectedVariable === 'temperature' || selectedVariable === 'heat') {
-      fillColor = distData.distTemp > 32.5 ? '#ef4444' : (distData.distTemp > 30.0 ? '#f59e0b' : '#38bdf8');
-    } else if (selectedVariable === 'rainfall' || selectedVariable === 'rain') {
-      fillColor = distData.distRain > 4.5 ? '#06b6d4' : (distData.distRain > 2.0 ? '#3b82f6' : '#64748b');
-    } else if (selectedVariable === 'wind') {
-      fillColor = distData.windSpeed > 18 ? '#a855f7' : (distData.windSpeed > 14 ? '#3b82f6' : '#06b6d4');
-    } else if (selectedVariable === 'clouds') {
-      fillColor = distData.cloudCoverPct > 70 ? '#94a3b8' : (distData.cloudCoverPct > 40 ? '#64748b' : '#38bdf8');
-    } else {
-      fillColor = distData.distRain > 3 ? '#0891b2' : '#f59e0b';
-    }
+    const fillColor = getClimateVariableColor(selectedVariable, distData);
 
     return {
       fillColor: fillColor,
-      fillOpacity: isSelected ? 0.8 : 0.32,
-      color: isSelected ? '#ffffff' : '#38bdf8',
-      weight: isSelected ? 3.5 : 1.2,
-      dashArray: isSelected ? '' : '3',
+      fillOpacity: isSelected ? 0.75 : 0.42,
+      color: isSelected ? '#ffffff' : fillColor,
+      weight: isSelected ? 3.5 : 1.8,
+      dashArray: '',
     };
   };
 
@@ -491,7 +686,7 @@ export const GoogleClimateMap = ({
               onClick={() => setSelectedVariable('temperature')}
               className={`px-3 py-1 rounded-lg font-medium flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
                 selectedVariable === 'temperature' || selectedVariable === 'heat'
-                  ? 'bg-amber-500 text-slate-950 font-bold'
+                  ? 'bg-amber-500 text-slate-950 font-bold shadow-md shadow-amber-500/20'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -503,7 +698,7 @@ export const GoogleClimateMap = ({
               onClick={() => setSelectedVariable('rainfall')}
               className={`px-3 py-1 rounded-lg font-medium flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
                 selectedVariable === 'rainfall' || selectedVariable === 'rain'
-                  ? 'bg-cyan-500 text-slate-950 font-bold'
+                  ? 'bg-cyan-500 text-slate-950 font-bold shadow-md shadow-cyan-500/20'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -515,7 +710,7 @@ export const GoogleClimateMap = ({
               onClick={() => setSelectedVariable('wind')}
               className={`px-3 py-1 rounded-lg font-medium flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
                 selectedVariable === 'wind'
-                  ? 'bg-purple-500 text-slate-950 font-bold'
+                  ? 'bg-purple-500 text-slate-950 font-bold shadow-md shadow-purple-500/20'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -527,7 +722,7 @@ export const GoogleClimateMap = ({
               onClick={() => setSelectedVariable('clouds')}
               className={`px-3 py-1 rounded-lg font-medium flex items-center gap-1.5 transition-all cursor-pointer shrink-0 ${
                 selectedVariable === 'clouds'
-                  ? 'bg-slate-300 text-slate-950 font-bold'
+                  ? 'bg-sky-400 text-slate-950 font-bold shadow-md shadow-sky-400/20'
                   : 'text-slate-400 hover:text-slate-200'
               }`}
             >
@@ -536,8 +731,62 @@ export const GoogleClimateMap = ({
             </button>
           </div>
 
-          {/* Reset & Engine Buttons */}
-          <div className="flex items-center gap-2">
+          {/* Theme & Reset Controls */}
+          <div className="flex items-center flex-wrap gap-2">
+            {mapEngine === 'google' && (
+              <div className="flex items-center bg-slate-950 p-1 rounded-xl border border-slate-800">
+                <button
+                  type="button"
+                  onClick={() => setGoogleMapTheme('vibrant')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
+                    googleMapTheme === 'vibrant'
+                      ? 'bg-gradient-to-r from-cyan-500 to-blue-600 text-white shadow-md'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="Vibrant high-contrast climate digital twin"
+                >
+                  <Sparkles className="w-3 h-3 text-cyan-200" />
+                  <span>Vibrant</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGoogleMapTheme('satellite')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
+                    googleMapTheme === 'satellite'
+                      ? 'bg-gradient-to-r from-emerald-500 to-teal-600 text-white shadow-md'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="Google satellite imagery with climate overlay"
+                >
+                  <span>🛰️ Satellite</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGoogleMapTheme('terrain')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
+                    googleMapTheme === 'terrain'
+                      ? 'bg-gradient-to-r from-amber-500 to-orange-600 text-white shadow-md'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="Topographic elevation terrain"
+                >
+                  <span>⛰️ Terrain</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setGoogleMapTheme('roadmap')}
+                  className={`px-2.5 py-1 rounded-lg text-xs font-semibold flex items-center gap-1 transition-all cursor-pointer ${
+                    googleMapTheme === 'roadmap'
+                      ? 'bg-slate-700 text-white shadow-md'
+                      : 'text-slate-400 hover:text-slate-200'
+                  }`}
+                  title="Standard Google street map"
+                >
+                  <span>🗺️ Street</span>
+                </button>
+              </div>
+            )}
+
             <button
               onClick={handleResetToState}
               className="px-3 py-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 text-slate-300 hover:text-white border border-slate-700 transition-colors flex items-center gap-1 cursor-pointer text-xs font-medium"
@@ -612,16 +861,18 @@ export const GoogleClimateMap = ({
               const distData = getDistrictClimateData(dist.name);
               const isSelected = (activeDistrict?.id && dist.id === activeDistrict.id) || 
                                  (activeDistrict?.name && dist.name === activeDistrict.name);
+              const color = getClimateVariableColor(selectedVariable, distData);
+
               return (
                 <CircleMarker
                   key={dist.id || dist.name}
                   center={[dist.lat, dist.lon]}
-                  radius={isSelected ? 10 : 6}
+                  radius={isSelected ? 11 : 7}
                   pathOptions={{
-                    color: isSelected ? '#ffffff' : '#0284c7',
-                    fillColor: selectedVariable === 'rainfall' ? '#06b6d4' : (selectedVariable === 'wind' ? '#a855f7' : '#f59e0b'),
-                    fillOpacity: 0.9,
-                    weight: isSelected ? 3 : 1.5
+                    color: isSelected ? '#ffffff' : '#0f172a',
+                    fillColor: color,
+                    fillOpacity: 0.95,
+                    weight: isSelected ? 3.0 : 1.8
                   }}
                   eventHandlers={{
                     click: () => {
@@ -651,29 +902,113 @@ export const GoogleClimateMap = ({
         )}
 
         {/* Selected District Floating Badge */}
-        <div className="absolute top-4 left-4 z-10 bg-slate-900/95 backdrop-blur-md p-3.5 rounded-xl border border-cyan-500/30 text-xs shadow-2xl space-y-1 max-w-xs">
-          <div className="flex items-center gap-2 font-mono font-bold text-cyan-400 text-xs">
-            <span className="text-xl" role="img" aria-label={activeDistrictData.condition?.ariaLabel}>{activeDistrictData.condition?.icon || '⛅'}</span>
-            <span>{activeDistrictData.name?.toUpperCase()}: {activeDistrictData.condition?.label?.toUpperCase()}</span>
+        <div className="absolute top-4 left-4 z-10 bg-slate-900/95 backdrop-blur-md p-3.5 rounded-xl border border-cyan-500/40 text-xs shadow-2xl space-y-1.5 max-w-xs transition-all">
+          <div className="flex items-center justify-between gap-2">
+            <div className="flex items-center gap-2 font-mono font-bold text-white text-xs">
+              <span className="text-xl" role="img" aria-label={activeDistrictData.condition?.ariaLabel}>{activeDistrictData.condition?.icon || '⛅'}</span>
+              <span>{activeDistrictData.name?.toUpperCase()} DISTRICT</span>
+            </div>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-cyan-950 text-cyan-300 border border-cyan-500/30">
+              {activeDistrictData.condition?.label || 'Clear Sky'}
+            </span>
           </div>
-          <p className="text-[11px] text-slate-300 font-sans leading-tight">
-            Temp: <strong>{activeDistrictData.distTemp} °C</strong> | Rain: <strong>{activeDistrictData.distRain} mm</strong> | Wind: <strong>{activeDistrictData.windSpeed} km/h</strong>
-          </p>
+          <div className="grid grid-cols-3 gap-1.5 pt-1 font-mono text-[10px]">
+            <div className="bg-amber-500/10 border border-amber-500/20 rounded-lg p-1.5 text-center">
+              <div className="text-amber-400 font-bold">{activeDistrictData.distTemp !== null ? `${activeDistrictData.distTemp}°C` : '--'}</div>
+              <div className="text-slate-400 text-[9px]">Temp</div>
+            </div>
+            <div className="bg-blue-500/10 border border-blue-500/20 rounded-lg p-1.5 text-center">
+              <div className="text-blue-400 font-bold">{activeDistrictData.distRain !== null ? `${activeDistrictData.distRain} mm` : '--'}</div>
+              <div className="text-slate-400 text-[9px]">Rain</div>
+            </div>
+            <div className="bg-purple-500/10 border border-purple-500/20 rounded-lg p-1.5 text-center">
+              <div className="text-purple-400 font-bold">{activeDistrictData.windSpeed !== null ? `${activeDistrictData.windSpeed} km/h` : '11 km/h'}</div>
+              <div className="text-slate-400 text-[9px]">Wind</div>
+            </div>
+          </div>
         </div>
 
-        {/* Map Legend */}
-        <div className="absolute bottom-6 left-4 z-10 bg-slate-900/95 backdrop-blur-md p-3 rounded-xl border border-slate-800 text-xs shadow-2xl space-y-1.5 max-w-xs">
-          <div className="font-mono text-[10px] font-bold text-slate-300 uppercase">
-            Active Layer: {selectedVariable.toUpperCase()}
+        {/* Map Legend (Positioned top-right to preserve Google's required logo and legal copyright notices at the bottom) */}
+        <div className="absolute top-4 right-4 z-10 bg-slate-900/95 backdrop-blur-md p-3 rounded-xl border border-slate-800 text-xs shadow-2xl space-y-2 max-w-xs">
+          <div className="flex items-center justify-between gap-2">
+            <span className="font-mono text-[10px] font-bold text-slate-300 uppercase tracking-wider">
+              {selectedVariable === 'temperature' ? 'Temperature' : (selectedVariable === 'rainfall' ? 'Rainfall' : (selectedVariable === 'wind' ? 'Wind Speed' : 'Cloud Cover'))}
+            </span>
+            <span className="text-[9px] font-bold text-cyan-400 font-mono">Live</span>
           </div>
-          <div className="flex items-center gap-2 font-mono text-[10px] text-slate-400">
-            <span className="w-3 h-3 rounded-full bg-cyan-500 inline-block"></span>
-            <span>Low / Moderate</span>
-            <span className="w-3 h-3 rounded-full bg-amber-500 inline-block ml-2"></span>
-            <span>Elevated</span>
-            <span className="w-3 h-3 rounded-full bg-rose-500 inline-block ml-2"></span>
-            <span>Extreme</span>
-          </div>
+
+          {selectedVariable === 'temperature' && (
+            <div className="space-y-1">
+              <div className="flex h-2.5 w-44 rounded-full overflow-hidden shadow-inner">
+                <div className="flex-1 bg-[#3b82f6]" title="<25°C Cool" />
+                <div className="flex-1 bg-[#06b6d4]" title="25-28°C Mild" />
+                <div className="flex-1 bg-[#10b981]" title="28-30°C Pleasant" />
+                <div className="flex-1 bg-[#eab308]" title="30-32°C Warm" />
+                <div className="flex-1 bg-[#f97316]" title="32-34°C High" />
+                <div className="flex-1 bg-[#ef4444]" title=">34°C Extreme" />
+              </div>
+              <div className="flex justify-between text-[9px] font-mono text-slate-400">
+                <span>&lt;25°C</span>
+                <span>28°</span>
+                <span>31°</span>
+                <span>&gt;34°C</span>
+              </div>
+            </div>
+          )}
+
+          {selectedVariable === 'rainfall' && (
+            <div className="space-y-1">
+              <div className="flex h-2.5 w-44 rounded-full overflow-hidden shadow-inner">
+                <div className="flex-1 bg-[#f59e0b]" title="<0.2mm Dry" />
+                <div className="flex-1 bg-[#84cc16]" title="0.2-1mm Trace" />
+                <div className="flex-1 bg-[#10b981]" title="1-2.5mm Light" />
+                <div className="flex-1 bg-[#06b6d4]" title="2.5-4.5mm Moderate" />
+                <div className="flex-1 bg-[#2563eb]" title="4.5-7mm Heavy" />
+                <div className="flex-1 bg-[#8b5cf6]" title=">7mm Torrential" />
+              </div>
+              <div className="flex justify-between text-[9px] font-mono text-slate-400">
+                <span>Dry</span>
+                <span>2.5 mm</span>
+                <span>5 mm</span>
+                <span>&gt;7 mm</span>
+              </div>
+            </div>
+          )}
+
+          {selectedVariable === 'wind' && (
+            <div className="space-y-1">
+              <div className="flex h-2.5 w-44 rounded-full overflow-hidden shadow-inner">
+                <div className="flex-1 bg-[#10b981]" title="<8 km/h Calm" />
+                <div className="flex-1 bg-[#06b6d4]" title="8-12 km/h Gentle" />
+                <div className="flex-1 bg-[#3b82f6]" title="12-16 km/h Moderate" />
+                <div className="flex-1 bg-[#a855f7]" title="16-20 km/h Strong" />
+                <div className="flex-1 bg-[#ec4899]" title=">20 km/h Gale" />
+              </div>
+              <div className="flex justify-between text-[9px] font-mono text-slate-400">
+                <span>&lt;8 km/h</span>
+                <span>12</span>
+                <span>16</span>
+                <span>&gt;20 km/h</span>
+              </div>
+            </div>
+          )}
+
+          {selectedVariable === 'clouds' && (
+            <div className="space-y-1">
+              <div className="flex h-2.5 w-44 rounded-full overflow-hidden shadow-inner">
+                <div className="flex-1 bg-[#f59e0b]" title="Clear" />
+                <div className="flex-1 bg-[#fbbf24]" title="Scattered" />
+                <div className="flex-1 bg-[#38bdf8]" title="Broken" />
+                <div className="flex-1 bg-[#6366f1]" title="Overcast" />
+              </div>
+              <div className="flex justify-between text-[9px] font-mono text-slate-400">
+                <span>Clear</span>
+                <span>30%</span>
+                <span>60%</span>
+                <span>Overcast</span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

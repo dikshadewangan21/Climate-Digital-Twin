@@ -1,0 +1,3 @@
+features=['latitude', 'longitude', 'temperature_2m_mean', 'precipitation_sum', 'relative_humidity_2m_mean', 'wind_speed_10m_mean', 'surface_pressure_mean', 'cloud_cover_mean', 'shortwave_radiation_sum', 'et0_fao_evapotranspiration']
+targets=['temperature_2m_mean', 'temperature_2m_max', 'temperature_2m_min', 'precipitation_sum', 'relative_humidity_2m_mean', 'wind_speed_10m_mean', 'surface_pressure_mean', 'cloud_cover_mean']
+samples=120318

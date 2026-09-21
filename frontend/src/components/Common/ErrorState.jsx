@@ -2,8 +2,8 @@ import React from 'react';
 import { AlertTriangle, RefreshCw, ServerCrash } from 'lucide-react';
 
 export const ErrorState = ({ 
-  title = "Backend API Connection Error", 
-  message = "Failed to communicate with the Climate Intelligence API server. Please ensure the backend server is running at http://localhost:8000.",
+  title = "Weather Information Unavailable", 
+  message = "Unable to retrieve the latest weather records. Please check your network connection and try again.",
   onRetry 
 }) => {
   return (
@@ -26,7 +26,7 @@ export const ErrorState = ({
           className="mt-2 px-4 py-2 bg-rose-500/20 hover:bg-rose-500/30 text-rose-300 border border-rose-500/40 rounded-xl text-xs font-bold transition-all flex items-center gap-2 cursor-pointer shadow-lg"
         >
           <RefreshCw className="w-3.5 h-3.5" />
-          <span>Retry Connection</span>
+          <span>Try Again</span>
         </button>
       )}
     </div>

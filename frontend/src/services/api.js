@@ -177,6 +177,98 @@ export const getPilotInfo = async () => {
   }
 };
 
+/**
+ * Fetch list of all 33 districts and coordinates from native backend
+ * Endpoint: GET /weather/locations
+ */
+export const getWeatherLocations = async () => {
+  try {
+    const response = await apiClient.get('/weather/locations');
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('API Error (/weather/locations):', error.message);
+    return { success: false, error: error.message || 'Weather locations unavailable' };
+  }
+};
+
+/**
+ * Fetch detailed live & 14-day timeline weather for a district
+ * Endpoint: GET /weather/district/{district_id}
+ */
+export const getDistrictWeatherDetail = async (districtId = 'raipur') => {
+  try {
+    const response = await apiClient.get(`/weather/district/${districtId.toLowerCase()}`);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error(`API Error (/weather/district/${districtId}):`, error.message);
+    return { success: false, error: error.message || 'Detailed district weather unavailable' };
+  }
+};
+
+/**
+ * Fetch multi-year historical ERA5-Land reanalysis daily rows
+ * Endpoint: GET /climate/history/{district_id}?years={years}
+ */
+export const getClimateHistory = async (districtId = 'raipur', years = 5) => {
+  try {
+    const response = await apiClient.get(`/climate/history/${districtId.toLowerCase()}`, {
+      params: { years }
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error(`API Error (/climate/history/${districtId}):`, error.message);
+    return { success: false, error: error.message || 'Climate history unavailable' };
+  }
+};
+
+/**
+ * Fetch multi-year climate summary & averages
+ * Endpoint: GET /climate/summary/{district_id}?years={years}
+ */
+export const getClimateSummary = async (districtId = 'raipur', years = 5) => {
+  try {
+    const response = await apiClient.get(`/climate/summary/${districtId.toLowerCase()}`, {
+      params: { years }
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error(`API Error (/climate/summary/${districtId}):`, error.message);
+    return { success: false, error: error.message || 'Climate summary unavailable' };
+  }
+};
+
+/**
+ * Fetch AI LSTM next-day prediction from native AI route
+ * Endpoint: GET /ai/next-day/{district_id}
+ */
+export const getNextDayAIPrediction = async (districtId = 'raipur') => {
+  try {
+    const response = await apiClient.get(`/ai/next-day/${districtId.toLowerCase()}`);
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error(`API Error (/ai/next-day/${districtId}):`, error.message);
+    return { success: false, error: error.message || 'AI next-day prediction unavailable' };
+  }
+};
+
+/**
+ * Raw digital twin simulation endpoint
+ * Endpoint: POST /simulate
+ */
+export const simulateClimateRaw = async (districtId = 'raipur', rainChangeMm = 0, tempChangeC = 0) => {
+  try {
+    const response = await apiClient.post('/simulate', {
+      district_id: districtId.toLowerCase(),
+      rainfall_change_mm: rainChangeMm,
+      temperature_change_c: tempChangeC,
+    });
+    return { success: true, data: response.data };
+  } catch (error) {
+    console.error('API Error (/simulate):', error.message);
+    return { success: false, error: error.message || 'Simulation calculation failed' };
+  }
+};
+
 export default {
   getHealth,
   getPredict,
@@ -189,6 +281,13 @@ export default {
   getDistrictReport,
   getModelMetrics,
   getPilotInfo,
+  getWeatherLocations,
+  getDistrictWeatherDetail,
+  getClimateHistory,
+  getClimateSummary,
+  getNextDayAIPrediction,
+  simulateClimateRaw,
   API_BASE_URL,
 };
+
 

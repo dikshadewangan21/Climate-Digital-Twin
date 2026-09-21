@@ -77,10 +77,10 @@ export const RealtimeAlertNotifier = ({ setActiveDistrict, setActiveTab, onNewAl
     }
   }, [playAlertSound, onNewAlert]);
 
-  // Initial and periodic polling every 12 seconds
+  // Initial and periodic polling every 60 seconds (prevents Open-Meteo 429 rate limits)
   useEffect(() => {
     pollAlerts();
-    const interval = setInterval(pollAlerts, 12000);
+    const interval = setInterval(pollAlerts, 60000);
     return () => clearInterval(interval);
   }, [pollAlerts]);
 
@@ -230,7 +230,7 @@ export const RealtimeAlertNotifier = ({ setActiveDistrict, setActiveTab, onNewAl
                   onClick={handleOpenAlertsCenter}
                   className="w-full py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 font-bold rounded-xl text-center transition-colors cursor-pointer block text-xs"
                 >
-                  Open Full Alerts Dashboard
+                  View All Weather Alerts
                 </button>
               </div>
             )}

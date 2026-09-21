@@ -36,3 +36,17 @@ yarn-error.log*
 .idea/
 .DS_Store
 Thumbs.db
+
+# Backend (Climate.backend)
+Climate.backend/ct_build/backend/venv/
+Climate.backend/ct_build/backend/.env
+Climate.backend/ct_build/backend/__pycache__/
+Climate.backend/ct_build/backend/api/__pycache__/
+Climate.backend/ct_build/backend/ai/__pycache__/
+Climate.backend/ct_build/backend/digital_twin/__pycache__/
+Climate.backend/ct_build/backend/preprocessing/__pycache__/
+
+# Raw binary data (large files – use Git LFS if needed)
+*.grd
+*.npy
+!Climate.backend/**/saved_models*/*.pth

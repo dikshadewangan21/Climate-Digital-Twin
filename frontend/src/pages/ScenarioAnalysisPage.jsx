@@ -13,7 +13,10 @@ import {
   RotateCcw,
   MapPin,
   Sprout,
-  HeartPulse
+  HeartPulse,
+  Sparkles,
+  CheckCircle2,
+  AlertTriangle
 } from 'lucide-react';
 import { 
   BarChart, 
@@ -55,312 +58,203 @@ export const ScenarioAnalysisPage = ({ districts = [], activeDistrict, setActive
   useEffect(() => {
     const timer = setTimeout(() => {
       fetchSimulation();
-    }, 150);
+    }, 200);
     return () => clearTimeout(timer);
   }, [fetchSimulation]);
 
-  const applyPreset = (t, r) => {
-    setTempDelta(t);
-    setRainDelta(r);
+  const handleReset = () => {
+    setTempDelta(0);
+    setRainDelta(0);
   };
 
-  const handleDistrictChange = (e) => {
-    const found = districts.find(d => d.id === e.target.value);
-    if (found && setActiveDistrict) {
-      setActiveDistrict(found);
+  const baseline = simulationData?.baseline || {};
+  const simulated = simulationData?.simulated || {};
+  const interp = simulationData?.interpretation || {};
+
+  const chartData = [
+    {
+      metric: 'Temperature (°C)',
+      Baseline: baseline.temperature_c !== undefined ? baseline.temperature_c : null,
+      Simulated: simulated.temperature_c !== undefined ? simulated.temperature_c : null,
+    },
+    {
+      metric: 'Precipitation (mm)',
+      Baseline: baseline.rainfall_mm !== undefined ? baseline.rainfall_mm : null,
+      Simulated: simulated.rainfall_mm !== undefined ? simulated.rainfall_mm : null,
     }
-  };
-
-  const base = simulationData?.baseline || {};
-  const scen = simulationData?.scenario || {};
-  const scenImpacts = scen.sector_impacts || {};
-  const comparisonData = simulationData?.comparison || [];
+  ];
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-200">
+    <div className="space-y-6 animate-in fade-in duration-300 pb-12">
       
-      {/* Page Header */}
-      <div className="flex flex-wrap items-center justify-between gap-4 pb-2 border-b border-slate-800">
-        <div>
-          <h1 className="text-2xl font-bold text-white tracking-tight">
-            What-If Climate Simulator
-          </h1>
-          <p className="text-sm text-slate-400 mt-0.5">
-            Test how changes in temperature and rainfall impact farming, public health, water storage, and power demand.
-          </p>
+      {/* Top Header */}
+      <div className="p-6 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-2">
+        <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-950/80 border border-amber-500/30 text-amber-400 text-xs font-semibold mb-2">
+          <Sliders className="w-3.5 h-3.5" />
+          <span>WHAT-IF WEATHER SIMULATOR</span>
         </div>
-
-        <button
-          onClick={() => applyPreset(0, 0)}
-          className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-slate-300 hover:text-white rounded-lg border border-slate-700 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
-        >
-          <RotateCcw className="w-3.5 h-3.5 text-cyan-400" />
-          <span>Reset Sliders</span>
-        </button>
+        <h1 className="text-2xl font-black text-white font-heading tracking-tight">
+          Weather What-If Simulation — {currentDistrict.name}
+        </h1>
+        <p className="text-xs text-slate-400">
+          Adjust temperature and rainfall sliders to test how climate shifts could impact crops, water availability, and heat comfort.
+        </p>
       </div>
 
-      {/* Target District & Presets */}
-      <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 flex flex-wrap items-center justify-between gap-4 shadow-md">
-        <div className="flex items-center gap-3">
-          <MapPin className="w-4 h-4 text-cyan-400 shrink-0" />
-          <div className="flex items-center gap-2">
-            <label className="text-xs text-slate-400 font-medium">District:</label>
-            <select
-              value={currentDistrict.id}
-              onChange={handleDistrictChange}
-              className="bg-slate-950 text-slate-100 font-bold text-xs p-1.5 rounded-lg border border-slate-700 focus:outline-none focus:border-cyan-500 cursor-pointer"
-            >
-              {districts.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {d.name}
-                </option>
-              ))}
-            </select>
-          </div>
+      {/* Sliders Control Card */}
+      <div className="p-6 rounded-3xl bg-slate-900/90 border border-slate-800 space-y-6">
+        <div className="flex items-center justify-between">
+          <h3 className="text-sm font-bold text-white uppercase tracking-wider font-heading">
+            Scenario Inputs & Controls
+          </h3>
+          <button
+            onClick={handleReset}
+            className="px-3 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs font-semibold flex items-center gap-1.5 transition-colors cursor-pointer"
+          >
+            <RotateCcw className="w-3.5 h-3.5" />
+            <span>Reset to Normal</span>
+          </button>
         </div>
 
-        <div className="flex flex-wrap items-center gap-1.5 text-xs">
-          <span className="text-slate-400 text-[11px] font-medium mr-1">Quick Presets:</span>
-          {[
-            { label: 'Severe Heatwave (+3.5°C, -30% Rain)', t: 3.5, r: -30 },
-            { label: 'Monsoon Deficit (+2°C, -45% Rain)', t: 2.0, r: -45 },
-            { label: 'Heavy Cloudburst (-1°C, +50% Rain)', t: -1.0, r: 50 },
-          ].map((p, idx) => (
-            <button
-              key={idx}
-              onClick={() => applyPreset(p.t, p.r)}
-              className="px-2.5 py-1.5 rounded-lg bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white transition-colors cursor-pointer text-xs font-medium"
-            >
-              {p.label}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {/* Sliders and Outcome Cards */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-        
-        {/* Sliders Panel */}
-        <div className="lg:col-span-7">
-          <Card title="Adjust Weather Conditions" icon={Sliders}>
-            <div className="space-y-6 pt-1">
-              
-              {/* Temperature Slider */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="font-semibold text-slate-200 flex items-center gap-1.5">
-                    <Thermometer className="w-4 h-4 text-amber-400" />
-                    Temperature Adjustment (°C)
-                  </span>
-                  <span className={`px-2.5 py-0.5 rounded text-xs font-bold ${
-                    tempDelta > 0 ? 'bg-amber-950 text-amber-300 border border-amber-500/30' : 'bg-blue-950 text-blue-300 border border-blue-500/30'
-                  }`}>
-                    {tempDelta > 0 ? `+${tempDelta}°C (Warming)` : `${tempDelta}°C (Cooling)`}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="-5.0"
-                  max="5.0"
-                  step="0.5"
-                  value={tempDelta}
-                  onChange={(e) => setTempDelta(parseFloat(e.target.value))}
-                  className="w-full h-2 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-amber-500"
-                />
-                <div className="flex justify-between text-[11px] text-slate-400">
-                  <span>-5°C Cooler</span>
-                  <span>0°C (Current)</span>
-                  <span>+5°C Warmer</span>
-                </div>
-              </div>
-
-              {/* Rainfall Slider */}
-              <div className="space-y-2">
-                <div className="flex justify-between items-center text-xs">
-                  <span className="font-semibold text-slate-200 flex items-center gap-1.5">
-                    <CloudRain className="w-4 h-4 text-cyan-400" />
-                    Rainfall Adjustment (%)
-                  </span>
-                  <span className={`px-2.5 py-0.5 rounded text-xs font-bold ${
-                    rainDelta >= 0 ? 'bg-cyan-950 text-cyan-300 border border-cyan-500/30' : 'bg-rose-950 text-rose-300 border border-rose-500/30'
-                  }`}>
-                    {rainDelta > 0 ? `+${rainDelta}% (More Rain)` : `${rainDelta}% (Drought)`}
-                  </span>
-                </div>
-                <input
-                  type="range"
-                  min="-50"
-                  max="50"
-                  step="5"
-                  value={rainDelta}
-                  onChange={(e) => setRainDelta(parseInt(e.target.value))}
-                  className="w-full h-2 bg-slate-950 rounded-lg appearance-none cursor-pointer accent-cyan-500"
-                />
-                <div className="flex justify-between text-[11px] text-slate-400">
-                  <span>-50% (Severe Drought)</span>
-                  <span>0% (Normal Rain)</span>
-                  <span>+50% (Excess Rain)</span>
-                </div>
-              </div>
-
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          
+          {/* Temperature Slider */}
+          <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800/80 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-300 flex items-center gap-2">
+                <Thermometer className="w-4 h-4 text-rose-400" />
+                <span>Temperature Change (ΔT)</span>
+              </span>
+              <span className={`text-base font-black font-heading ${tempDelta >= 0 ? 'text-rose-400' : 'text-blue-400'}`}>
+                {tempDelta >= 0 ? `+${tempDelta}°C` : `${tempDelta}°C`}
+              </span>
             </div>
-          </Card>
-        </div>
-
-        {/* State Snapshot Cards */}
-        <div className="lg:col-span-5 grid grid-cols-2 gap-4">
-          <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2 text-center">
-            <span className="text-[10px] uppercase font-bold text-slate-400 block">Current Baseline</span>
-            <div className="text-3xl my-1">{base.condition?.icon || '⛅'}</div>
-            <div className="text-xs font-bold text-slate-200">{base.condition?.label || 'Baseline'}</div>
-            <div className="pt-1 text-left space-y-1 text-xs">
-              <div className="flex justify-between p-2 rounded bg-slate-950">
-                <span className="text-slate-400">Temp:</span>
-                <span className="font-bold text-amber-400">{base.temperature_c ?? '--'} °C</span>
-              </div>
-              <div className="flex justify-between p-2 rounded bg-slate-950">
-                <span className="text-slate-400">Rain:</span>
-                <span className="font-bold text-cyan-300">{base.rainfall_mm ?? '--'} mm</span>
-              </div>
+            <input
+              type="range"
+              min="-10"
+              max="10"
+              step="0.5"
+              value={tempDelta}
+              onChange={(e) => setTempDelta(parseFloat(e.target.value))}
+              className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-rose-500"
+            />
+            <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+              <span>-10°C (Much Cooler)</span>
+              <span>0°C (Current)</span>
+              <span>+10°C (Much Hotter)</span>
             </div>
           </div>
 
-          <div className="p-4 rounded-2xl bg-cyan-950/20 border border-cyan-500/30 space-y-2 text-center">
-            <span className="text-[10px] uppercase font-bold text-cyan-400 block">Simulated Outcome</span>
-            <div className="text-3xl my-1">{scen.condition?.icon || '⛅'}</div>
-            <div className="text-xs font-bold text-cyan-300">{scen.condition?.label || 'Simulated'}</div>
-            <div className="pt-1 text-left space-y-1 text-xs">
-              <div className="flex justify-between p-2 rounded bg-slate-950">
-                <span className="text-slate-400">New Temp:</span>
-                <span className="font-bold text-amber-400">{scen.temperature_c ?? '--'} °C</span>
-              </div>
-              <div className="flex justify-between p-2 rounded bg-slate-950">
-                <span className="text-slate-400">New Rain:</span>
-                <span className="font-bold text-cyan-300">{scen.rainfall_mm ?? '--'} mm</span>
-              </div>
+          {/* Rainfall Slider */}
+          <div className="p-4 rounded-2xl bg-slate-950/70 border border-slate-800/80 space-y-3">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-slate-300 flex items-center gap-2">
+                <CloudRain className="w-4 h-4 text-cyan-400" />
+                <span>Rainfall Change (ΔP)</span>
+              </span>
+              <span className={`text-base font-black font-heading ${rainDelta >= 0 ? 'text-cyan-400' : 'text-amber-400'}`}>
+                {rainDelta >= 0 ? `+${rainDelta}%` : `${rainDelta}%`}
+              </span>
+            </div>
+            <input
+              type="range"
+              min="-100"
+              max="100"
+              step="5"
+              value={rainDelta}
+              onChange={(e) => setRainDelta(parseFloat(e.target.value))}
+              className="w-full h-2 bg-slate-800 rounded-lg appearance-none cursor-pointer accent-cyan-500"
+            />
+            <div className="flex justify-between text-[10px] text-slate-500 font-mono">
+              <span>-100% (Severe Drought)</span>
+              <span>0% (Current)</span>
+              <span>+100% (Double Rainfall)</span>
             </div>
           </div>
-        </div>
 
+        </div>
       </div>
 
-      {loading && !simulationData ? (
-        <LoadingState message="Calculating climate perturbation impacts..." />
+      {loading ? (
+        <LoadingState message="Calculating weather simulation..." />
       ) : error ? (
-        <ErrorState title="Calculation Failed" message={error} onRetry={fetchSimulation} />
+        <ErrorState message={error} onRetry={fetchSimulation} />
       ) : (
-        <>
-          {/* 4 Practical Sector Impact Cards */}
-          <div>
-            <h2 className="text-xs font-bold uppercase tracking-wider text-slate-400 mb-3">
-              Sector Impact Projections
-            </h2>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 text-xs">
-              
-              {/* Farming Impact */}
-              <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-300 font-bold flex items-center gap-1.5">
-                    <Sprout className="w-4 h-4 text-emerald-400" /> Farming & Crops
-                  </span>
-                  <span className={`font-bold text-xs ${(scenImpacts.agriculture?.stress_score ?? 0) > 50 ? 'text-rose-400' : 'text-emerald-400'}`}>
-                    {scenImpacts.agriculture?.status || 'Favorable'}
-                  </span>
+        <div className="space-y-6">
+          
+          {/* Baseline vs Simulated Tri-Card Flow */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 items-center">
+            
+            {/* Card 1: Baseline */}
+            <div className="p-5 rounded-2xl bg-slate-900/80 border border-slate-800 space-y-3">
+              <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">1. Current Conditions</span>
+              <div className="space-y-1">
+                <div className="text-2xl font-black text-white font-heading">
+                  {baseline.temperature_c !== undefined && baseline.temperature_c !== null ? `${baseline.temperature_c}°C` : 'Data unavailable'}
                 </div>
-                <div className="text-2xl font-bold text-white">
-                  {scenImpacts.agriculture?.stress_score ?? 15} <span className="text-xs text-slate-400">/ 100 Stress</span>
+                <div className="text-xs text-slate-400">
+                  Precipitation: <strong className="text-blue-400">{baseline.rainfall_mm !== undefined && baseline.rainfall_mm !== null ? `${baseline.rainfall_mm} mm` : 'Data unavailable'}</strong>
                 </div>
-                <div className="text-xs text-emerald-400">
-                  Sowing Suitability: <strong>{scenImpacts.agriculture?.sowing_suitability ?? 80}%</strong>
-                </div>
-                <p className="text-[11px] text-slate-400 leading-snug">
-                  {scenImpacts.agriculture?.note || 'Normal farming conditions.'}
-                </p>
               </div>
-
-              {/* Public Health */}
-              <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-300 font-bold flex items-center gap-1.5">
-                    <HeartPulse className="w-4 h-4 text-rose-400" /> Public Health
-                  </span>
-                  <span className={`font-bold text-xs ${scenImpacts.health?.color || 'text-amber-400'}`}>
-                    {scenImpacts.health?.score ?? 20}/100 Risk
-                  </span>
-                </div>
-                <div className="text-2xl font-bold text-amber-400">
-                  {scenImpacts.health?.heat_index_c ?? 30}°C <span className="text-xs text-slate-400">Feels Like</span>
-                </div>
-                <div className="text-xs text-amber-300">
-                  {scenImpacts.health?.category || 'Low Risk'}
-                </div>
-                <p className="text-[11px] text-slate-400 leading-snug">
-                  Expected thermal comfort and outdoor labor safety.
-                </p>
+              <div className="text-[10px] text-slate-500 pt-1 border-t border-slate-800">
+                Source: Live recorded weather
               </div>
+            </div>
 
-              {/* Water Reserves */}
-              <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-300 font-bold flex items-center gap-1.5">
-                    <Droplets className="w-4 h-4 text-cyan-400" /> Water & Dams
-                  </span>
-                  <span className="text-cyan-300 font-bold">Runoff: {scenImpacts.hydrology?.runoff_index ?? 'Medium'}</span>
-                </div>
-                <div className="text-2xl font-bold text-cyan-300">
-                  {scenImpacts.hydrology?.soil_moisture_pct ?? 45}% <span className="text-xs text-slate-400">Soil Moisture</span>
-                </div>
-                <div className="text-xs text-cyan-400">
-                  Reservoir: <strong>{scenImpacts.hydrology?.reservoir_status || 'Stable'}</strong>
-                </div>
-                <p className="text-[11px] text-slate-400 leading-snug">
-                  Expected reservoir inflows and irrigation canal availability.
-                </p>
+            {/* Card 2: Shift Applied */}
+            <div className="p-5 rounded-2xl bg-cyan-950/40 border border-cyan-500/30 text-center space-y-2">
+              <span className="text-[10px] font-bold text-cyan-300 uppercase tracking-wider">2. Weather Shift Applied</span>
+              <div className="text-base font-bold text-white flex items-center justify-center gap-2">
+                <span>ΔT: {tempDelta >= 0 ? `+${tempDelta}` : tempDelta}°C</span>
+                <span>•</span>
+                <span>ΔP: {rainDelta >= 0 ? `+${rainDelta}` : rainDelta}%</span>
               </div>
+              <div className="text-[10px] text-cyan-400">Simulated Weather Outcome</div>
+            </div>
 
-              {/* Power Grid */}
-              <div className="p-4 rounded-2xl bg-slate-900/90 border border-slate-800 space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-slate-300 font-bold flex items-center gap-1.5">
-                    <Zap className="w-4 h-4 text-amber-400" /> Power Grid Demand
-                  </span>
-                  <span className={`font-bold text-xs ${scenImpacts.energy?.peak_load_warning ? 'text-amber-400' : 'text-emerald-400'}`}>
-                    {scenImpacts.energy?.peak_load_warning ? 'High Load' : 'Normal Load'}
-                  </span>
-                </div>
-                <div className="text-2xl font-bold text-orange-400">
-                  +{scenImpacts.energy?.grid_surge_pct ?? 10}% <span className="text-xs text-slate-400">Cooling Surge</span>
+            {/* Card 3: Outcome */}
+            <div className="p-5 rounded-2xl bg-gradient-to-br from-slate-900 to-blue-950/60 border border-blue-500/40 space-y-3 shadow-lg">
+              <span className="text-[10px] font-bold text-blue-300 uppercase tracking-wider">3. Simulated Outcome</span>
+              <div className="space-y-1">
+                <div className="text-2xl font-black text-white font-heading">
+                  {simulated.temperature_c !== undefined && simulated.temperature_c !== null ? `${simulated.temperature_c}°C` : 'Data unavailable'}
                 </div>
                 <div className="text-xs text-slate-300">
-                  Cooling Factor: <strong>{scenImpacts.energy?.cooling_degree ?? 1.1}</strong>
+                  Precipitation: <strong className="text-blue-300">{simulated.rainfall_mm !== undefined && simulated.rainfall_mm !== null ? `${simulated.rainfall_mm} mm` : 'Data unavailable'}</strong>
                 </div>
-                <p className="text-[11px] text-slate-400 leading-snug">
-                  Estimated peak power load from air conditioning and cooling.
-                </p>
               </div>
-
+              <div className="text-[10px] text-emerald-400 pt-1 border-t border-blue-500/20 font-medium">
+                Condition: {interp.temperature_condition || 'Normal'} & {interp.rainfall_condition || 'Dry'}
+              </div>
             </div>
+
           </div>
 
-          {/* Side-by-Side Comparison Chart */}
-          <Card title="Baseline vs Simulated Outcome Comparison" icon={BarChart}>
-            <div className="h-64 w-full pt-2">
+          {/* Bar Chart Comparison */}
+          <div className="p-5 rounded-3xl bg-slate-900/80 border border-slate-800 space-y-3">
+            <h3 className="text-sm font-bold text-white uppercase tracking-wider flex items-center gap-2">
+              <Zap className="w-4 h-4 text-cyan-400" />
+              <span>Current vs Simulated Comparison</span>
+            </h3>
+
+            <div className="h-64 w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={comparisonData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                <BarChart data={chartData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="#1e293b" />
-                  <XAxis dataKey="name" stroke="#64748b" tick={{ fontSize: 11 }} />
+                  <XAxis dataKey="metric" stroke="#64748b" tick={{ fontSize: 11 }} />
                   <YAxis stroke="#64748b" tick={{ fontSize: 11 }} />
-                  <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '8px', fontSize: '12px' }} />
-                  <Legend wrapperStyle={{ fontSize: '11px' }} />
-                  <Bar dataKey="Current Baseline" fill="#475569" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="Simulated Scenario" fill="#06b6d4" radius={[4, 4, 0, 0]} />
+                  <Tooltip contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px', fontSize: '11px' }} />
+                  <Legend wrapperStyle={{ fontSize: '11px', paddingTop: '8px' }} />
+                  <Bar dataKey="Baseline" fill="#64748b" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="Simulated" fill="#38bdf8" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
-          </Card>
-        </>
+          </div>
+
+        </div>
       )}
+
     </div>
   );
 };

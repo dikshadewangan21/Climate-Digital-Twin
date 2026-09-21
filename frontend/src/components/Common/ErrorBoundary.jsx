@@ -41,10 +41,10 @@ export class ErrorBoundary extends Component {
 
           <div className="max-w-lg space-y-2">
             <h3 className="text-base font-black text-slate-100 font-heading">
-              Component Render Error
+              Weather View Notice
             </h3>
             <p className="text-xs text-slate-300 font-sans leading-relaxed">
-              A temporary display error occurred in this view. You can retry rendering or reload.
+              A temporary display issue occurred while displaying this section. Click below to reload the view.
             </p>
             {this.state.error && (
               <div className="p-3 bg-slate-950 rounded-xl border border-slate-800 text-[11px] font-mono text-rose-300 text-left overflow-x-auto max-h-32">
@@ -59,7 +59,7 @@ export class ErrorBoundary extends Component {
               className="px-4 py-2 bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs rounded-xl shadow-md transition-all flex items-center gap-1.5 cursor-pointer"
             >
               <RefreshCw className="w-3.5 h-3.5" />
-              <span>Retry Component</span>
+              <span>Retry View</span>
             </button>
 
             <button
