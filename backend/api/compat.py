@@ -32,7 +32,7 @@ import joblib
 from fastapi import APIRouter, Query, HTTPException
 from pydantic import BaseModel
 
-from data_locations import DISTRICTS, BY_ID
+from data_locations import DISTRICTS, BY_ID, get_district_by_id
 from weather_service import live_weather
 from ai.model import ClimateLSTM
 
@@ -563,15 +563,12 @@ class ScenarioRequest(BaseModel):
 @router.post("/scenario")
 def simulate_scenario(req: ScenarioRequest):
     """What-if climate perturbation — live baseline + user-defined deltas."""
-    meta = BY_ID.get((req.district_id or "raipur").lower())
-    if not meta:
-        raise HTTPException(404, "District not found")
-
+    meta = get_district_by_id(req.district_id)
     live = _get_live_district(meta)
     dist_rec = _district_record(meta, live)
 
-    base_temp = dist_rec["temperature_c"] or 0.0
-    base_rain = dist_rec["rainfall_mm"] or 0.0
+    base_temp = dist_rec["temperature_c"] if dist_rec["temperature_c"] is not None else float(meta.get("baseTemp", 31.5))
+    base_rain = dist_rec["rainfall_mm"] if dist_rec["rainfall_mm"] is not None else float(meta.get("baseRain", 2.5))
 
     sim_temp = round(base_temp + req.temp_delta_c, 2)
     sim_rain = round(max(0.0, base_rain * (1.0 + req.rain_delta_pct / 100.0)), 2)
@@ -586,18 +583,30 @@ def simulate_scenario(req: ScenarioRequest):
         {"name": "Crop Stress (0–100)", "Current Baseline": base_impacts["agriculture"]["stress_score"], "Simulated Scenario": sim_impacts["agriculture"]["stress_score"]},
     ]
 
+    temp_cond = "Hot" if sim_temp >= 35 else ("Warm" if sim_temp >= 28 else "Pleasant")
+    rain_cond = "Heavy Rain" if sim_rain >= 10 else ("Moderate Rain" if sim_rain >= 2 else "Dry / Light")
+
+    outcome_dict = {
+        "temperature_c": sim_temp,
+        "rainfall_mm": sim_rain,
+        "condition": _condition(sim_rain, sim_temp),
+        "sector_impacts": sim_impacts,
+    }
+
     return {
         "district": dist_rec,
         "deltas": {"temp_delta_c": req.temp_delta_c, "rain_delta_pct": req.rain_delta_pct},
         "baseline": {
-            "temperature_c": base_temp, "rainfall_mm": base_rain,
+            "temperature_c": base_temp,
+            "rainfall_mm": base_rain,
             "condition": _condition(base_rain, base_temp),
             "sector_impacts": base_impacts,
         },
-        "scenario": {
-            "temperature_c": sim_temp, "rainfall_mm": sim_rain,
-            "condition": _condition(sim_rain, sim_temp),
-            "sector_impacts": sim_impacts,
+        "scenario": outcome_dict,
+        "simulated": outcome_dict,
+        "interpretation": {
+            "temperature_condition": temp_cond,
+            "rainfall_condition": rain_cond,
         },
         "comparison": comparison_data,
         "comparison_data": comparison_data,

@@ -35,5 +35,43 @@ DISTRICTS = [
     {"id":"surajpur","name":"Surajpur","lat":23.21,"lon":82.86},
     {"id":"surguja","name":"Surguja","lat":23.12,"lon":83.20},
 ]
-
 BY_ID = {d["id"]: d for d in DISTRICTS}
+
+# Common spelling / abbreviation aliases from frontend
+DISTRICT_ALIASES = {
+    "balodabazar": "baloda-bazar",
+    "gpm": "gaurela-pendra-marwahi",
+    "janjgirchampa": "janjgir-champa",
+    "kcg": "khairagarh-chhuikhadan-gandai",
+    "koriya": "korea",
+    "mcb": "manendragarh-chirmiri-bharatpur",
+    "mma": "mohla-manpur-ambagarh-chowki",
+    "sarangarh": "sarangarh-bilaigarh",
+    "bilaigarh": "sarangarh-bilaigarh",
+    "chirmiri": "manendragarh-chirmiri-bharatpur",
+    "bharatpur": "manendragarh-chirmiri-bharatpur",
+    "ambikapur": "surguja",
+    "jagdalpur": "bastar",
+    "kawardha": "kabirdham",
+}
+
+for alias, target in DISTRICT_ALIASES.items():
+    if target in BY_ID:
+        BY_ID[alias] = BY_ID[target]
+
+def get_district_by_id(district_id: str | None) -> dict:
+    if not district_id:
+        return BY_ID["raipur"]
+    d_clean = district_id.strip().lower()
+    if d_clean in BY_ID:
+        return BY_ID[d_clean]
+    norm = "".join(c for c in d_clean if c.isalnum())
+    if norm in BY_ID:
+        return BY_ID[norm]
+    for key, d in list(BY_ID.items()):
+        if "".join(c for c in key if c.isalnum()) == norm:
+            return d
+    for d in DISTRICTS:
+        if norm in "".join(c for c in d["name"].lower() if c.isalnum()):
+            return d
+    return BY_ID.get("raipur", DISTRICTS[0])
