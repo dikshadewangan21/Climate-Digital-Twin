@@ -18,29 +18,24 @@ app = FastAPI(
 )
 
 cors_env = os.getenv("CORS_ORIGINS", "") or os.getenv("FRONTEND_ORIGINS", "")
-if cors_env.strip():
-    if cors_env.strip() == "*":
-        allowed_origins = ["*"]
-        allow_creds = False
-    else:
-        allowed_origins = [o.strip() for o in cors_env.split(",") if o.strip()]
-        allow_creds = True
+if cors_env.strip() and cors_env.strip() != "*":
+    allowed_origins = [o.strip() for o in cors_env.split(",") if o.strip()]
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origins=allowed_origins,
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 else:
-    allowed_origins = [
-        "http://localhost:5173",
-        "http://127.0.0.1:5173",
-        "http://localhost:3000",
-        "http://127.0.0.1:3000",
-    ]
-    allow_creds = True
-
-app.add_middleware(
-    CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=allow_creds,
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+    # Allow all origins (including Vercel, Netlify, Render, localhost) with full credentials reflection
+    app.add_middleware(
+        CORSMiddleware,
+        allow_origin_regex=r".*",
+        allow_credentials=True,
+        allow_methods=["*"],
+        allow_headers=["*"],
+    )
 
 # Core v2 routes
 app.include_router(health_router)
